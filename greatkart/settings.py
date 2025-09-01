@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+#from decouple import config
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,6 +42,7 @@ INSTALLED_APPS = [
     'category',
     'accounts',
     'store',
+    'carts',
 ]
 
 MIDDLEWARE = [
@@ -65,6 +68,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'category.context_processors.menu_links',
+                'carts.context_processors.counter',
             ],
         },
     },
@@ -134,3 +138,19 @@ MEDIA_ROOT = BASE_DIR /'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+from django.contrib.messages import constants as messages
+MESSAGES_TAGES = {
+    messages.ERROR:'danger',
+}
+
+
+# SMTP configuration
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'swayamkalra2003@gmail.com'
+EMAIL_HOST_PASSWORD = 'qjzb knfi ialk gvmm'
+EMAIL_USE_TLS = True
+
+
