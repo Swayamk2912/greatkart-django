@@ -36,7 +36,7 @@
 	<div class="container">
 <div class="row align-items-center">
 	<div class="col-lg-2 col-md-3 col-6">
-		<a href="{% url 'Home' %}" class="brand-wrap">
+		<a href="{% url 'home' %}" class="brand-wrap">
 			<img class="logo" src="{% static './images/logo.png' %}">
 		</a> <!-- brand-wrap.// -->
 	</div>
@@ -73,8 +73,14 @@
     {% if user.is_authenticated %}
         <small class="title text-muted">Welcome {{ user.username }}!</small>
         <div>
-			<a href="{% url 'dashboard' %}">Dashboard</a> 
-            <a href="{% url 'logout' %}">Logout</a>
+			<a href="{% url 'dashboard' %}">Dashboard |</a> 
+            <a href="{% url 'logout' %}" onclick="
+    localStorage.removeItem('access');
+    localStorage.removeItem('refresh');
+    console.log('✅ JWT tokens cleared from localStorage');
+">
+    Logout
+</a>
         </div>
     {% else %}
         <small class="title text-muted">Welcome guest!</small>
@@ -103,3 +109,16 @@
 
 
 </header> <!-- section-header.// -->
+
+<script>
+    // Protect all private pages
+    const protectedPages = ["/dashboard", "/my_orders", "/edit_profile"];
+
+    if (protectedPages.some(path => window.location.pathname.includes(path))) {
+        const token = localStorage.getItem("access");
+        if (!token) {
+            alert("Please log in first!");
+            window.location.href = "{% url 'login' %}";
+        }
+    }
+</script>

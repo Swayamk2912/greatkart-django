@@ -42,6 +42,22 @@ $(document).ready(function() {
 </head>
 <body>
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const access = localStorage.getItem("access");
+    const refresh = localStorage.getItem("refresh");
+    if (access && refresh) {
+        console.log("✅ JWT tokens from localStorage:");
+        console.log("Access:", access);
+        console.log("Refresh:", refresh);
+    } else {
+        console.log("⚠️ No JWT tokens found in localStorage");
+    }
+});
+</script>
+
+
+
 <!--navbar-->
 {% include 'includes/navbar.html' %}
 

@@ -6,7 +6,7 @@
 <h2 class="text-center">Your Shopping Cart is Empty</h2>
 <br>
 <div class="text-center">
-	<a href="{% url 'store' %}"class="btn btn-primary">Continue Shopping</a>
+	<a href="{% url 'store' %}" class="btn btn-primary">Continue Shopping</a>
 </div>
 {% else %}
 
@@ -31,7 +31,9 @@
                                     <img src="{{ cart_item.product.images.url }}" class="img-sm">
                                 </div>
                                 <figcaption class="info">
-                                    <a href="{{ cart_item.product.get_url }}" class="title text-dark">{{ cart_item.product.product_name }}</a>
+                                    <a href="{{ cart_item.product.get_url }}" class="title text-dark">
+                                        {{ cart_item.product.product_name }}
+                                    </a>
                                     <p class="text-muted small">Brand: {{ cart_item.product.brand }}</p>
                                 </figcaption>
                             </figure>
@@ -40,13 +42,17 @@
                             <div class="col">
                                 <div class="input-group input-spinner">
                                     <div class="input-group-prepend">
-                                        <a href="{% url 'remove_cart' cart_item.product.id %}" class="btn btn-light" type="button">
+                                        <!-- decrease quantity -->
+                                        <a href="{% url 'remove_cart_item' cart_item.product.id cart_item.id %}" 
+                                           class="btn btn-light" type="button">
                                             <i class="fa fa-minus"></i>
                                         </a>
                                     </div>
-                                    <input type="text" class="form-control" value="{{ cart_item.quantity }}">
+                                    <input type="text" class="form-control" value="{{ cart_item.quantity }}" readonly>
                                     <div class="input-group-append">
-                                        <a href="{% url 'add_cart' cart_item.product.id %}" class="btn btn-light" type="button">
+                                        <!-- increase quantity -->
+                                        <a href="{% url 'add_cart' cart_item.product.id %}" 
+                                           class="btn btn-light" type="button">
                                             <i class="fa fa-plus"></i>
                                         </a>
                                     </div>
@@ -60,7 +66,9 @@
                             </div>
                         </td>
                         <td class="text-right">
-                            <a href="{% url 'remove_cart' cart_item.product.id %}" class="btn btn-danger">Remove</a>
+                            <!-- remove whole item -->
+                            <a href="{% url 'remove_cart' cart_item.product.id cart_item.id %}" 
+                               class="btn btn-danger">Remove</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -88,7 +96,8 @@
                 <p class="text-center mb-3">
                     <img src="{% static './images/misc/payments.png' %}" height="26">
                 </p>
-                <a href="./place-order.html" class="btn btn-primary btn-block"> Checkout </a>
+                <a href="{% url 'checkout' %}" class="btn btn-primary btn-block"> Checkout </a>
+
                 <a href="{% url 'store' %}" class="btn btn-light btn-block">Continue Shopping</a>
             </div>
         </div>

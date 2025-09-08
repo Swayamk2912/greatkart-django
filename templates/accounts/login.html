@@ -1,51 +1,79 @@
 {% extends 'base.html' %}
 
-
 {% block content %}
+<section class="section-content padding-y" style="min-height:84vh">
 
-<section class="section-conten padding-y" style="min-height:84vh">
+    {% if request.GET.command == 'verification' %}
+        <div class="container mx-auto alert alert-info text-center" role="alert" style="max-width: 1024px; margin-top:100px;">
+            Thank you for registering with us. We have sent you a verification email to your email address [{{ request.GET.email }}]
+            <br><br>
+            Already verified? <a href="{% url 'login' %}">Login</a>
+        </div>
+    {% else %}
 
-<!-- ============================ COMPONENT LOGIN   ================================= -->
+        <div class="card mx-auto" style="max-width: 380px; margin-top:100px;">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Sign in</h4>
+                {% include 'includes/alerts.html' %}
+                <form id="loginForm" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input type="email" class="form-control" placeholder="Email Address" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" placeholder="Password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <a href="{% url 'forgotPassword' %}" class="float-right">Forgot password?</a>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-block"> Login </button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-{% if request.GET.command == 'verification' %}
+        <p class="text-center mt-4">Don't have an account? <a href="{% url 'register' %}">Sign up</a></p>
+        <br><br>
 
-<div class="container mx-auto alert alert-info text-center" role="alert" style="max-width: 1024px; margin-top:100px;">
-Thank you for registering with us. We have sent you a verification email to your email address [{{ request.GET.email }}]
-<br><br>
-Already verified? <a href="{% url 'login' %}">Login</a>
-</div>
+        <script>
+        document.getElementById("loginForm").addEventListener("submit", async function(e) {
+            e.preventDefault(); // prevent normal form submission
 
-{% else %}
+            let formData = new FormData(this);
 
-	<div class="card mx-auto" style="max-width: 380px; margin-top:100px;">
+            try {
+                let response = await fetch("{% url 'login' %}", {
+                    method: "POST",
+                    headers: { "X-CSRFToken": formData.get("csrfmiddlewaretoken") },
+                    body: formData
+                });
 
-      <div class="card-body">
-      <h4 class="card-title mb-4">Sign in</h4>
-      {% include 'includes/alerts.html' %}
-      <form action="{% url 'login' %}" method="POST">
-        {% csrf_token %}
-          <div class="form-group">
-			 <input type="email" class="form-control" placeholder="Email Address" name="email">
-          </div> <!-- form-group// -->
-          <div class="form-group">
-			<input type="password" class="form-control" placeholder="Password" name="password">
-          </div> <!-- form-group// -->
+                let data = await response.json();
+                console.log("Login response:", data); // debug
 
-          <div class="form-group">
-          	<a href="{% url 'forgotPassword' %}" class="float-right">Forgot password?</a>
+                if (data.success) {
+                    // ✅ Save JWT tokens
+                    localStorage.setItem("access", data.access);
+                    localStorage.setItem("refresh", data.refresh);
 
-          </div> <!-- form-group form-check .// -->
-          <div class="form-group">
-              <button type="submit" class="btn btn-primary btn-block"> Login  </button>
-          </div> <!-- form-group// -->
-      </form>
-      </div> <!-- card-body.// -->
-    </div> <!-- card .// -->
+                    // ✅ Handle redirect (next parameter or default)
+                    let urlParams = new URLSearchParams(window.location.search);
+                    let nextUrl = urlParams.get("next") || data.redirect_url || "/dashboard/";
 
-     <p class="text-center mt-4">Don't have account? <a href="{% url 'register' %}">Sign up</a></p>
-     <br><br>
-<!-- ============================ COMPONENT LOGIN  END.// ================================= -->
-{% endif %}
+                    window.location.replace(nextUrl); // redirect without keeping login page in history
 
+                } else {
+                    alert(data.error || "Login failed");
+                }
+
+            } catch (err) {
+                console.error("Error during login:", err);
+                alert("An error occurred during login");
+            }
+        });
+        </script>
+
+    {% endif %}
 </section>
 {% endblock %}

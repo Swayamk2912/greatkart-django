@@ -4,8 +4,6 @@
 {% block content %}
 <section class="section-content padding-y bg">
 
-    {% include "includes/alerts.html" %}
-
     <div class="container">
         <div class="row">
             <aside class="col-md-3">
@@ -21,43 +19,82 @@
                 </a>
             </aside>
 
-            <main class="col-md-9">
-                {% for order in orders %}
-                <article class="card mb-3">
-                    <header class="card-header">
-                        <strong class="d-inline-block mr-3">Order ID: {{ order.order_number }}</strong>
-                        <span>Order Date: {{ order.created_at|date:"d M Y" }}</span>
-                    </header>
-                    <div class="card-body">
-                        <p><strong>Total:</strong> ${{ order.total }}</p>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            {% for item in order.orderproduct_set.all %}
-                            <tr>
-                                <td width="65">
-                                    <img src="{{ item.product.image.url }}" class="img-xs border">
-                                </td>
-                                <td>
-                                    <p class="title mb-0">{{ item.product.product_name }}</p>
-                                    <var class="price text-muted">USD {{ item.price }}</var>
-                                    <p>Quantity: {{ item.quantity }}</p>
-                                </td>
-                                <td> Seller <br> {{ item.product.seller }} </td>
-                                <td width="250">
-                                    <a href="#" class="btn btn-outline-primary">Track order</a>
-                                    <a href="#" class="btn btn-light">Details</a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-                </article>
-                {% empty %}
-                    <p>You have no orders yet.</p>
-                {% endfor %}
+            <main class="col-md-9" id="orders-container">
+                <p>Loading orders...</p>
             </main>
         </div>
     </div>
 </section>
+
+<script>
+async function loadOrders() {
+    const accessToken = localStorage.getItem("access");
+    if (!accessToken) {
+        window.location.href = "{% url 'login' %}?next=/accounts/dashboard/";
+        return;
+    }
+
+    try {
+        let response = await fetch("/api/my_orders/", {
+            headers: { "Authorization": `Bearer ${accessToken}` }
+        });
+
+        if (response.status === 401) {
+            window.location.href = "{% url 'login' %}?next=/accounts/dashboard/";
+            return;
+        }
+
+        const orders = await response.json();
+        const container = document.getElementById("orders-container");
+
+        if (!orders.length) {
+            container.innerHTML = "<p>You have no orders yet.</p>";
+            return;
+        }
+
+        container.innerHTML = "";
+
+        orders.forEach(order => {
+            let orderHtml = `
+                <article class="card mb-3">
+                    <header class="card-header">
+                        <strong>Order ID: ${order.order_number}</strong>
+                        <span>Order Date: ${new Date(order.created_at).toLocaleDateString()}</span>
+                    </header>
+                    <div class="card-body">
+                        <p><strong>Total:</strong> $${order.total}</p>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            ${order.items.map(item => `
+                                <tr>
+                                    <td width="65"><img src="${item.image}" class="img-xs border"></td>
+                                    <td>
+                                        <p class="title mb-0">${item.product_name}</p>
+                                        <var class="price text-muted">USD ${item.price}</var>
+                                        <p>Quantity: ${item.quantity}</p>
+                                    </td>
+                                    <td>Seller <br> ${item.seller}</td>
+                                    <td width="250">
+                                        <a href="#" class="btn btn-outline-primary">Track order</a>
+                                        <a href="#" class="btn btn-light">Details</a>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                </article>
+            `;
+            container.insertAdjacentHTML("beforeend", orderHtml);
+        });
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById("orders-container").innerHTML = "<p>Failed to load orders.</p>";
+    }
+}
+
+// Load orders on page load
+loadOrders();
+</script>
 {% endblock %}
