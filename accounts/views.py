@@ -19,6 +19,7 @@ from carts.views import _cart_id
 from carts.models import Cart, CartItem
 import requests
 from rest_framework_simplejwt.tokens import RefreshToken
+from .tasks import send_welcome_email
 
 def register(request):
     if request.method == 'POST':
@@ -52,6 +53,7 @@ def register(request):
             to_email = email
             send_email = EmailMessage(mail_subject, message, to=[to_email])
             send_email.send()
+        
             # messages.success(request, 'Thank you for registering with us. We have sent you a verification email to your email address [rathan.kumar@gmail.com]. Please verify it.')
             return redirect('/accounts/login/?command=verification&email='+email)
     else:
@@ -124,6 +126,8 @@ def activate(request, uidb64, token):
     if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
+        
+        send_welcome_email.delay(user.email)
         messages.success(request, 'Congratulations! Your account is activated.')
         return redirect('login')
     else:
